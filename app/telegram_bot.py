@@ -40,12 +40,12 @@ class BotApp:
             current = extract_status(health_data)
         except Exception as exc1:
            logger.error("Health check failed (attempt 1): %s", exc1)
-            try:
-                health_data = await self._health.fetch()
-                current = extract_status(health_data)
-            except Exception as exc2:
-                logger.error("Health check failed (attempt 2): %s", exc2)
-                current = {"overall": "Unhealthy"}
+           try:
+               health_data = await self._health.fetch()
+               current = extract_status(health_data)
+           except Exception as exc2:
+               logger.error("Health check failed (attempt 2): %s", exc2)
+               current = {"overall": "Unhealthy"}
 
         previous = await self.repo.get_health_state()
         if previous is None:
