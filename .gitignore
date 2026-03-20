@@ -2,3 +2,4 @@
 /.idea/
 /subscribers.json
 
+/.env.example
