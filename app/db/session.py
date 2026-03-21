@@ -3,6 +3,7 @@ from __future__ import annotations
 from urllib.parse import quote_plus
 
 import asyncpg
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.engine.url import make_url
 
@@ -25,6 +26,20 @@ class Database:
         await self._ensure_database_exists()
         async with self._engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            await self._ensure_subscriber_columns(conn)
+
+    async def _ensure_subscriber_columns(self, conn) -> None:
+        """Idempotent column adds for existing deployments (create_all does not alter tables)."""
+        dialect = conn.dialect.name
+        if dialect != "postgresql":
+            return
+        stmts = [
+            "ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS linguicards_username VARCHAR(255)",
+            "ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS reminder_time VARCHAR(8)",
+            "ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS reminder_timezone VARCHAR(64)",
+        ]
+        for sql in stmts:
+            await conn.execute(text(sql))
 
     async def _ensure_database_exists(self) -> None:
         """
