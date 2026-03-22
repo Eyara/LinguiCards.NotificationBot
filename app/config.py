@@ -10,9 +10,17 @@ from dotenv import load_dotenv
 class Settings:
     telegram_bot_token: str
     api_base_url: str
+    api_key: str | None
     health_check_interval_minutes: int
     database_url: str
     telegram_proxy_url: str | None
+
+
+def api_request_headers(api_key: str | None) -> dict[str, str]:
+    headers = {"Accept": "application/json", "User-Agent": "LinguiCards-NotificationBot/1.0"}
+    if api_key:
+        headers["x-api-key"] = api_key
+    return headers
 
 
 def load_settings() -> Settings:
@@ -20,6 +28,7 @@ def load_settings() -> Settings:
 
     telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
     api_base_url = os.getenv("API_BASE_URL", "").rstrip("/")
+    api_key = os.getenv("API_KEY", "").strip() or os.getenv("X_API_KEY", "").strip() or None
     health_check_interval_minutes = int(os.getenv("HEALTH_CHECK_INTERVAL_MINUTES", "5"))
     database_url = os.getenv("DATABASE_URL", "")
 
@@ -79,6 +88,7 @@ def load_settings() -> Settings:
     return Settings(
         telegram_bot_token=telegram_bot_token,
         api_base_url=api_base_url,
+        api_key=api_key,
         health_check_interval_minutes=health_check_interval_minutes,
         database_url=database_url,
         telegram_proxy_url=telegram_proxy_url,

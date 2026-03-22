@@ -55,8 +55,8 @@ class BotApp:
         self._settings = settings
         self._db = Database(settings.database_url)
         self._repo: Repository | None = None
-        self._health = HealthClient(settings.api_base_url)
-        self._daily = DailyNotificationClient(settings.api_base_url)
+        self._health = HealthClient(settings.api_base_url, settings.api_key)
+        self._daily = DailyNotificationClient(settings.api_base_url, settings.api_key)
 
     @property
     def repo(self) -> Repository:
@@ -183,7 +183,7 @@ class BotApp:
         )
 
     async def status_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        headers = {"Accept": "application/json", "User-Agent": "LinguiCards-NotificationBot/1.0"}
+        headers = api_request_headers(self._settings.api_key)
         try:
             async with httpx.AsyncClient(timeout=30, headers=headers) as client:
                 resp = await client.get(f"{self._settings.api_base_url.rstrip('/')}/health")

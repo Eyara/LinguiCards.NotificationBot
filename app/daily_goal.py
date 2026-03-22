@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 import httpx
 
+from app.config import api_request_headers
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,11 +21,12 @@ class DailyNotificationStatus:
 class DailyNotificationClient:
     """GET /api/Notification/daily?username=..."""
 
-    def __init__(self, api_base_url: str) -> None:
+    def __init__(self, api_base_url: str, api_key: str | None) -> None:
         self._base = api_base_url.rstrip("/")
+        self._api_key = api_key
 
     async def fetch(self, username: str) -> DailyNotificationStatus:
-        headers = {"Accept": "application/json", "User-Agent": "LinguiCards-NotificationBot/1.0"}
+        headers = api_request_headers(self._api_key)
         async with httpx.AsyncClient(timeout=30, headers=headers) as client:
             resp = await client.get(
                 f"{self._base}/api/Notification/daily",
